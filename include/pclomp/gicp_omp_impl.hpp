@@ -216,7 +216,7 @@ void pclomp::GeneralizedIterativeClosestPoint<PointSource, PointTarget>::
 
   // Optimize using forward-difference approximation LM
   const double gradient_tol = 1e-2;
-  OptimizationFunctorWithIndices functor(this);
+  OptimizationFunctorWithIndices functor(this, gradient_tol);
   BFGS<OptimizationFunctorWithIndices> bfgs(functor);
   bfgs.parameters.sigma = 0.01;
   bfgs.parameters.rho = 0.01;
@@ -233,7 +233,7 @@ void pclomp::GeneralizedIterativeClosestPoint<PointSource, PointTarget>::
     if (result) {
       break;
     }
-    result = bfgs.testGradient(gradient_tol);
+    result = bfgs.testGradient();
   } while (result == BFGSSpace::Running && inner_iterations_ < max_inner_iterations_);
   if (
     result == BFGSSpace::NoProgress || result == BFGSSpace::Success ||

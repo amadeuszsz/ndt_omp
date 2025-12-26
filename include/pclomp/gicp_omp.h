@@ -340,15 +340,24 @@ protected:
   /// \brief optimization functor structure
   struct OptimizationFunctorWithIndices : public BFGSDummyFunctor<double, 6>
   {
-    explicit OptimizationFunctorWithIndices(const GeneralizedIterativeClosestPoint * gicp)
-    : BFGSDummyFunctor<double, 6>(), gicp_(gicp)
+    explicit OptimizationFunctorWithIndices(const GeneralizedIterativeClosestPoint * gicp, double gradient_tolerance = 1e-2)
+    : BFGSDummyFunctor<double, 6>(), gicp_(gicp), gradient_tolerance_(gradient_tolerance)
     {
     }
     double operator()(const Vector6d & x) override;
     void df(const Vector6d & x, Vector6d & df) override;
     void fdf(const Vector6d & x, double & f, Vector6d & df) override;
+    BFGSSpace::Status checkGradient(const Vector6d & g) override
+    {
+      if (gradient_tolerance_ < 0)
+        return BFGSSpace::NegativeGradientEpsilon;
+      if (g.norm() < gradient_tolerance_)
+        return BFGSSpace::Success;
+      return BFGSSpace::Running;
+    }
 
     const GeneralizedIterativeClosestPoint * gicp_;
+    double gradient_tolerance_;
   };
 
   std::function<void(
